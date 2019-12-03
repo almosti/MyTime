@@ -6,4 +6,202 @@
     android:layout_height="match_parent"
     tools:context=".NewPageActivity">
 
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:id="@+id/edit_above_background"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@color/colorAccent">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/edit_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            app:backgroundTint="@android:color/darker_gray"
+            app:rippleColor="@android:color/darker_gray"
+            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/edit_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="10dp"
+            android:clickable="true"
+            app:backgroundTint="@android:color/darker_gray"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:rippleColor="@android:color/darker_gray"
+            app:srcCompat="@android:drawable/ic_menu_save" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/edit_title_text"
+            android:text="@string/edit_title"
+            android:textColor="@color/white"
+            android:layout_marginStart="20dp"
+            app:layout_constraintTop_toBottomOf="@+id/edit_cancel"
+            app:layout_constraintLeft_toRightOf="@+id/edit_cancel"/>
+
+        <EditText
+            android:id="@+id/edit_title"
+            android:layout_width="270dp"
+            android:layout_height="wrap_content"
+            android:theme="@style/MyEditText"
+            android:inputType="text"
+            android:hint="@string/default_edit_title"
+            android:textColorHint="@color/white"
+            android:textColor="@color/white"
+            android:autofillHints=""
+            app:layout_constraintLeft_toLeftOf="@+id/edit_title_text"
+            app:layout_constraintTop_toBottomOf="@+id/edit_title_text" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/edit_remark_text"
+            android:text="@string/edit_remark"
+            android:textColor="@color/white"
+            app:layout_constraintLeft_toLeftOf="@+id/edit_title_text"
+            app:layout_constraintTop_toBottomOf="@+id/edit_title"
+            app:layout_constraintLeft_toRightOf="@+id/edit_cancel"/>
+
+        <EditText
+            android:id="@+id/edit_remark"
+            android:layout_width="270dp"
+            android:layout_height="wrap_content"
+            android:theme="@style/MyEditText"
+            android:inputType="text"
+            android:textColor="@color/white"
+            android:hint="@string/default_edit_remark"
+            android:textColorHint="@color/white"
+            android:autofillHints=""
+            app:layout_constraintLeft_toLeftOf="@+id/edit_remark_text"
+            app:layout_constraintTop_toBottomOf="@+id/edit_remark_text" />
+
+    </android.support.constraint.ConstraintLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:id="@+id/edit_section_time"
+        app:layout_constraintTop_toBottomOf="@id/edit_above_background">
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/edit_time_section">
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:id="@+id/edit_time_image"
+                app:srcCompat="@android:drawable/ic_menu_recent_history"
+                android:contentDescription="@string/edit_time_image"
+                android:layout_marginStart="@dimen/fab_margin"
+                android:layout_marginTop="@dimen/fab_margin"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/edit_time_title"
+                android:text="@string/edit_time_title"
+                android:textSize="@dimen/title_character_size"
+                app:layout_constraintLeft_toRightOf="@+id/edit_time_image"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="15sp"
+                android:layout_marginStart="@dimen/fab_margin"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/edit_time"
+                android:text="@string/default_edit_time"
+                android:textSize="@dimen/content_character_size"
+                app:layout_constraintLeft_toRightOf="@+id/edit_time_image"
+                app:layout_constraintTop_toBottomOf="@+id/edit_time_title"
+                android:layout_marginStart="@dimen/fab_margin"/>
+
+        </android.support.constraint.ConstraintLayout>
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/edit_repeat_section">
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:id="@+id/edit_repeat_image"
+                app:srcCompat="@android:drawable/ic_menu_week"
+                android:contentDescription="@string/edit_repeat_image"
+                android:layout_marginStart="@dimen/fab_margin"
+                android:layout_marginTop="@dimen/fab_margin"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/edit_repeat_title"
+                android:text="@string/edit_repeat_title"
+                android:textSize="@dimen/title_character_size"
+                app:layout_constraintLeft_toRightOf="@+id/edit_repeat_image"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="15sp"
+                android:layout_marginStart="@dimen/fab_margin"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/edit_repeat"
+                android:text="@string/default_edit_repeat"
+                android:textSize="@dimen/content_character_size"
+                app:layout_constraintLeft_toRightOf="@+id/edit_repeat_image"
+                app:layout_constraintTop_toBottomOf="@+id/edit_repeat_title"
+                android:layout_marginStart="@dimen/fab_margin"/>
+
+        </android.support.constraint.ConstraintLayout>
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/edit_image_section">
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:id="@+id/edit_image_image"
+                app:srcCompat="@android:drawable/ic_menu_gallery"
+                android:contentDescription="@string/edit_image_image"
+                android:layout_marginStart="@dimen/fab_margin"
+                android:layout_marginTop="@dimen/fab_margin"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/edit_image_title"
+                android:text="@string/edit_image_title"
+                android:textSize="@dimen/title_character_size"
+                app:layout_constraintLeft_toRightOf="@+id/edit_image_image"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="15sp"
+                android:layout_marginStart="@dimen/fab_margin"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/edit_image"
+                android:text="@string/default_edit_image"
+                android:textSize="@dimen/content_character_size"
+                app:layout_constraintLeft_toRightOf="@+id/edit_image_image"
+                app:layout_constraintTop_toBottomOf="@+id/edit_image_title"
+                android:layout_marginStart="@dimen/fab_margin"/>
+
+        </android.support.constraint.ConstraintLayout>
+    </LinearLayout>
+
+
+
 </android.support.constraint.ConstraintLayout>

@@ -16,7 +16,7 @@ public class TimePage implements Serializable {
         hour=-1;
         minute=-1;
         cycle=-1;
-        second=-1;
+        second=0;//由于timepicker无法设定秒，故直接默认为整分钟
     }
 
     //用于获取剩余时间
@@ -31,7 +31,7 @@ public class TimePage implements Serializable {
         return calendar;
     }
 
-    //返回倒计时是否已过
+    //检查倒计时是否已过
     boolean getTimeDistanceSign(){
         Calendar calendar=Calendar.getInstance();
         calendar=getTimeDistance();
@@ -48,6 +48,16 @@ public class TimePage implements Serializable {
         else if(calendar.get(Calendar.SECOND)<0)
             return false;
         return true;
+    }
+
+    //检查倒计时页合法性
+    boolean isValid(){
+        return (!title.isEmpty()&&
+                year!=-1&&
+                month!=-1&&
+                day!=-1&&
+                hour!=-1&&
+                minute!=-1);
     }
 
     public String getTitle() { return title; }

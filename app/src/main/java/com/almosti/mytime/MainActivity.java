@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity
     public class ListViewAdapter extends BaseAdapter {
         ArrayList<View> itemViews;
 
-        public ListViewAdapter(ArrayList<TimePage> TimeList){
+        ListViewAdapter(ArrayList<TimePage> TimeList){
             itemViews = new ArrayList<View>(TimeList.size());
 
             //初始化列表
@@ -55,15 +55,18 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        public void addItem(TimePage page) {
+        void addItem(TimePage page) {
             TimeList.add(page);
+            TimeListOperator operator=new TimeListOperator();
+            operator.save(MainActivity.this.getBaseContext(),TimeList);
             View view=makeItemView(page);
             itemViews.add(view);
-
         }
 
         public void removeItem(int positon){
             itemViews.remove(positon);
+            TimeListOperator operator=new TimeListOperator();
+            operator.save(MainActivity.this.getBaseContext(),TimeList);
             TimeList.remove(positon);
         }
 
@@ -99,7 +102,6 @@ public class MainActivity extends AppCompatActivity
             }
             dateText.setText(timeDistanceString);
 
-            //在有内容的页面显示中要获取行数并只显示最多三行
             TextView contentText = (TextView) itemView.findViewById(R.id.timeContent);
             String contentString=page.getTitle()+"\n"+page.getYear()+"年"+page.getMonth()+"月"+page.getDay()+"日";
             contentText.setText(contentString);
@@ -132,6 +134,8 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         //初始化计时器数据列表
+        TimeListOperator operator=new TimeListOperator();
+        TimeList=operator.load(getBaseContext());
         if(TimeList==null){
             TimeList=new ArrayList<>();
         }
@@ -190,17 +194,24 @@ public class MainActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode){
             case REQUEST_CODE_NEW_PAGE:
+                //添加新页面，直接使用page对象作为传递值实现了易扩展性
                 if (resultCode == RESULT_OK){
                     Bundle bundle=data.getExtras();
                     TimePage page;
-                    if(bundle.getSerializable("TimePage")!=null){
+                    if(bundle!=null){
                         page = (TimePage) bundle.getSerializable("TimePage");
-                    }else{
-                        Toast.makeText(MainActivity.this, "添加新倒计时产生错误！", Toast.LENGTH_LONG).show();
-                        return;
+                        if(page!=null){
+                            if(!page.isValid()){
+                                return;
+                            }
+                            theListAdapter.addItem(page);
+                            theListAdapter.notifyDataSetChanged();
+                        }
                     }
-                    theListAdapter.addItem(page);
-                    theListAdapter.notifyDataSetChanged();
+                }
+                //暂无处理
+                if(resultCode==RESULT_CANCELED){
+
                 }
                 break;
         }
