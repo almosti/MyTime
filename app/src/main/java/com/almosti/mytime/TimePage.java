@@ -1,5 +1,7 @@
 package com.almosti.mytime;
 
+import android.net.Uri;
+
 import java.io.Serializable;
 import java.util.Calendar;
 
@@ -9,7 +11,6 @@ public class TimePage implements Serializable {
     public TimePage() {
         title="";
         remark="";
-        pictureID=-1;
         year=-1;
         month=-1;
         day=-1;
@@ -74,11 +75,11 @@ public class TimePage implements Serializable {
         this.remark = remark;
     }
 
-    public int getPictureID() {
+    public Uri getPictureID() {
         return pictureID;
     }
 
-    public void setPictureID(int pictureID) {
+    public void setPictureID(Uri pictureID) {
         this.pictureID = pictureID;
     }
 
@@ -136,7 +137,7 @@ public class TimePage implements Serializable {
 
     private String title;
     private String remark;
-    private int pictureID;
+    private Uri pictureID;
     private int year;
     private int month;
     private int day;
