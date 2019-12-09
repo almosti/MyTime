@@ -8,7 +8,7 @@
         android:layout_height="match_parent"
         android:id="@+id/time_list"
         android:divider="@android:color/transparent"
-        android:dividerHeight="30dp"
+        android:dividerHeight="0dp"
         android:scrollbars="none"
         android:fadeScrollbars="false"
         android:overScrollMode="never"/>

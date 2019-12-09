@@ -32,18 +32,17 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.Calendar;
 
+import static com.almosti.mytime.MainActivity.verifyStoragePermissions;
+
 public class NewPageActivity extends AppCompatActivity {
 
     private TimePage page;
     private TextView editTimeText;
     private Calendar targetCalendar;
     private int cycle;
-    private android.net.Uri imageURI;
+    private String imagePath;
     private static final int QUEST_IMAGE=1;
-    private static final int REQUEST_EXTERNAL_STORAGE = 10;
-    private static String[] PERMISSIONS_STORAGE = {
-            "android.permission.READ_EXTERNAL_STORAGE",
-            "android.permission.WRITE_EXTERNAL_STORAGE" };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +52,8 @@ public class NewPageActivity extends AppCompatActivity {
         if(getSupportActionBar()!=null){
             getSupportActionBar().hide();
         }
-
+        //提前确认已经获取权限
+        verifyStoragePermissions(NewPageActivity.this);
         page=new TimePage();
         FloatingActionButton fabCancel=findViewById(R.id.edit_cancel);
         FloatingActionButton fabSave = findViewById(R.id.edit_save);
@@ -69,7 +69,8 @@ public class NewPageActivity extends AppCompatActivity {
         fabCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setResult(RESULT_CANCELED);
+                Intent intent=getIntent();
+                setResult(RESULT_CANCELED,intent);
                 finish();
             }
         });
@@ -85,7 +86,11 @@ public class NewPageActivity extends AppCompatActivity {
                 page.setHour(targetCalendar.get(Calendar.HOUR_OF_DAY));
                 page.setMinute(targetCalendar.get(Calendar.MINUTE));
                 page.setCycle(cycle);
-                page.setPictureID(imageURI);
+                //由于uri数据过长，直接序列化传输会导致原活动页重启，这里使用string进行传输
+                if (imagePath != null) {
+                    page.setImagePath(imagePath);
+                    //page.setPictureID(imageURI);
+                }
                 if(!page.isValid()){
                     Toast.makeText(getBaseContext(), "输入的倒计时无效,请检查标题与所选日期", Toast.LENGTH_LONG).show();
                     return;
@@ -94,7 +99,7 @@ public class NewPageActivity extends AppCompatActivity {
                 Bundle bundle=new Bundle();
                 bundle.putSerializable("TimePage", page);
                 intent.putExtras(bundle);
-                setResult(RESULT_OK);
+                setResult(RESULT_OK,intent);
                 finish();
             }
         });
@@ -105,7 +110,7 @@ public class NewPageActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View v) {
                 SetTimeByCalculator();
-                return false;
+                return true;
             }
         });
         editRepeat.setOnClickListener(new View.OnClickListener() {
@@ -131,7 +136,7 @@ public class NewPageActivity extends AppCompatActivity {
                                 cycle=365;
                                 cycleText.setText("每年");
                                 break;
-                            case 4:
+                            case 3:
                                 CustomizeCycle();
                                 cycleText.setText("自定义");
                                 break;
@@ -146,7 +151,6 @@ public class NewPageActivity extends AppCompatActivity {
         editImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                verifyStoragePermissions(NewPageActivity.this);
                 Intent intent = new Intent(Intent.ACTION_PICK, null);
                 intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
                 startActivityForResult(intent,QUEST_IMAGE);
@@ -167,7 +171,12 @@ public class NewPageActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String s = editText.getText() == null ? "" : editText.getText().toString();
+                if (s.isEmpty()||s.length()>3) {
+                    Toast.makeText(getBaseContext(), "请输入合理周期", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 cycle=Integer.valueOf(s);
+                editDialog.dismiss();
             }
         });
         cancel.setOnClickListener(new View.OnClickListener() {
@@ -178,6 +187,7 @@ public class NewPageActivity extends AppCompatActivity {
         });
         editDialog.show();
     }
+
     //自定义对话框实现日期计算器
     private void SetTimeByCalculator(){
 
@@ -216,9 +226,10 @@ public class NewPageActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
                 if(s!=null&&s.length()>0){
                     int dateDistance=Integer.valueOf(s.toString());
+                    int yearDistance=0;
                     if(TimeDistanceValid(dateDistance)){
                         Calendar tmpCalendar=Calendar.getInstance();
-                        tmpCalendar.add(Calendar.DAY_OF_YEAR,dateDistance);
+                        tmpCalendar.add(Calendar.DAY_OF_YEAR, dateDistance);
                         futureCalendar.set(tmpCalendar.get(Calendar.YEAR), tmpCalendar.get(Calendar.MONTH), tmpCalendar.get(Calendar.DATE));
                         dialog_edit_future_time_text.setText(String.format(getString(R.string.dialog_set_edit_future_time), tmpCalendar.get(Calendar.YEAR), tmpCalendar.get(Calendar.MONTH)+1, tmpCalendar.get(Calendar.DATE)));
                     }
@@ -257,6 +268,7 @@ public class NewPageActivity extends AppCompatActivity {
         dialog.show();
 
     }
+
     //使用官方datepicker和timepicker的对话框进行日期时间的设置
     class SetTimeByCalendar implements View.OnClickListener{
         @Override
@@ -318,45 +330,24 @@ public class NewPageActivity extends AppCompatActivity {
     }
 
     private boolean TimeDistanceValid(int timeDistance){
-        return timeDistance>=0&&timeDistance<365;
+        return timeDistance>=0&&timeDistance<Integer.MAX_VALUE;
     }
 
+    //在成功获取后设置背景
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        super.onActivityResult(requestCode,resultCode,data);
         if (requestCode == QUEST_IMAGE && resultCode == RESULT_OK){
             if (data != null) {
-                imageURI=data.getData();
+                Uri imageURI=data.getData();
                 View view = findViewById(R.id.edit_above_background);
-                File f = new File(getRealPathFromURI(imageURI));
+                imagePath = MainActivity.getPathFromUri(getApplicationContext(), imageURI);
+                File f = new File(imagePath);
                 Drawable drawable = Drawable.createFromPath(f.getAbsolutePath());
                 view.setBackground(drawable);
-
             }
-        }
-        super.onActivityResult(requestCode,resultCode,data);
-    }
-    private String getRealPathFromURI(Uri contentURI) {
-        Cursor cursor = getContentResolver().query(contentURI, null, null, null, null);
-        if (cursor == null) { // Source is Dropbox or other similar local file path
-            return contentURI.getPath();
-        } else {
-            cursor.moveToFirst();
-            int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-            return cursor.getString(idx);
         }
     }
 
-    public static void verifyStoragePermissions(Activity activity) {
-        try {
-            //检测是否有写的权限
-            int permission = ActivityCompat.checkSelfPermission(activity,
-                    "android.permission.WRITE_EXTERNAL_STORAGE");
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                // 没有写的权限，去申请写的权限，会弹出对话框
-                ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE,REQUEST_EXTERNAL_STORAGE);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+
 }

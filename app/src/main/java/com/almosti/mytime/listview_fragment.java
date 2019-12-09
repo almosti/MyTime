@@ -11,9 +11,11 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 public class listview_fragment extends Fragment {
-    private  MainActivity.ListViewAdapter listviewadapter;
+    private  static MainActivity.ListViewAdapter listviewadapter;
     callbackvalue callback;
 
+    public listview_fragment(){
+    }
     public listview_fragment(MainActivity.ListViewAdapter theListViewAdapter) {
         listviewadapter=theListViewAdapter;
     }

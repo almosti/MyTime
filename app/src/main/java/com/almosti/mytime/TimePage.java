@@ -1,14 +1,16 @@
 package com.almosti.mytime;
 
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 
 import java.io.Serializable;
 import java.util.Calendar;
+import java.util.Date;
 
 public class TimePage implements Serializable {
 
     //用于防止页面在写数据过程中出错导致的变量未正确初始化
-    public TimePage() {
+    TimePage() {
         title="";
         remark="";
         year=-1;
@@ -20,37 +22,27 @@ public class TimePage implements Serializable {
         second=0;//由于timepicker无法设定秒，故直接默认为整分钟
     }
 
-    //用于获取剩余时间
-    Calendar getTimeDistance(){
+    //用于获取剩余时间，本质是计算时间差，这里先返回差额秒数，由调用者自行转化单位
+    long getTimeDistance(){
         Calendar calendar=Calendar.getInstance();
-        calendar.set(year-calendar.get(Calendar.YEAR),
-                month-calendar.get(Calendar.MONTH),
-                day-calendar.get(Calendar.DATE),
-                hour-calendar.get(Calendar.HOUR_OF_DAY),
-                minute-calendar.get(Calendar.MINUTE),
-                second-calendar.get(Calendar.SECOND));
-        return calendar;
+        return Math.abs(calendar.getTimeInMillis()-getTimeDate().getTime());
     }
 
     //检查倒计时是否已过
     boolean getTimeDistanceSign(){
         Calendar calendar=Calendar.getInstance();
-        calendar=getTimeDistance();
-        if(calendar.get(Calendar.YEAR)<0)
-            return false;
-        else if(calendar.get(Calendar.MONTH)<0)
-            return false;
-        else if(calendar.get(Calendar.DATE)<0)
-            return false;
-        else if(calendar.get(Calendar.HOUR_OF_DAY)<0)
-            return false;
-        else if(calendar.get(Calendar.MINUTE)<0)
-            return false;
-        else if(calendar.get(Calendar.SECOND)<0)
-            return false;
-        return true;
+        return calendar.getTime().getTime()<=getTimeDate().getTime();
     }
 
+    Calendar getTimeCalendar(){
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(year, month, day, hour, minute, second);
+        return calendar;
+    }
+    Date getTimeDate(){
+        Calendar calendar=getTimeCalendar();
+        return calendar.getTime();
+    }
     //检查倒计时页合法性
     boolean isValid(){
         return (!title.isEmpty()&&
@@ -73,14 +65,6 @@ public class TimePage implements Serializable {
 
     public void setRemark(String remark) {
         this.remark = remark;
-    }
-
-    public Uri getPictureID() {
-        return pictureID;
-    }
-
-    public void setPictureID(Uri pictureID) {
-        this.pictureID = pictureID;
     }
 
     public int getYear() {
@@ -135,9 +119,12 @@ public class TimePage implements Serializable {
 
     public void setSecond(int second) { this.second = second; }
 
+    public String getImagePath() { return imagePath; }
+
+    public void setImagePath(String imagePath) { this.imagePath = imagePath;}
+
     private String title;
     private String remark;
-    private Uri pictureID;
     private int year;
     private int month;
     private int day;
@@ -145,5 +132,5 @@ public class TimePage implements Serializable {
     private int minute;
     private int second;
     private int cycle;
-
+    private String imagePath;
 }
