@@ -37,6 +37,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,11 +47,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,listview_fragment.callbackvalue {
+        implements NavigationView.OnNavigationItemSelectedListener {
 
     /*定义全局变量*/
     private ArrayList<TimePage> TimeList;
-    ListViewAdapter theListAdapter;
+    private ListViewAdapter theListAdapter;
+    private ListView theListView;
     private static final int REQUEST_CODE_NEW_PAGE=10;
     private static final int REQUEST_EXTERNAL_STORAGE = 10;
     private static String[] PERMISSIONS_STORAGE = {
@@ -166,18 +168,9 @@ public class MainActivity extends AppCompatActivity
             TimeList=new ArrayList<>();
         }
         theListAdapter=new ListViewAdapter(TimeList);
-        final listview_fragment fragment = new listview_fragment(theListAdapter);
-        FragmentManager fragmentManager=getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction=fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.frame_container,fragment);
-        fragmentTransaction.commit();
-    }
+        theListView = findViewById(R.id.time_list);
+        theListView.setAdapter(theListAdapter);
 
-    /*实现回调函数
-     * 通过这个函数获取listview点击的项目*/
-    @Override
-    public void sendvalue(int selecteditem) {
-        TimePage page = TimeList.get(selecteditem);
     }
 
     //返回键优先关闭左侧滑动菜单
