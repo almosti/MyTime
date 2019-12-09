@@ -29,15 +29,6 @@ import static org.junit.Assert.*;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class BasicFunctionTest {
-    MainActivity mainActivity;
-
-    @Before
-    public void SetUp(){
-        Intent intent = new Intent();
-        intent.setClassName("com.almosti.mytime", MainActivity.class.getName());
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        mainActivity = (MainActivity)getInstrumentation().startActivitySync(intent);
-    }
 
     @Test
     public void AddNewTime(){
