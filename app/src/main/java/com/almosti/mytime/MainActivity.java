@@ -36,6 +36,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -50,10 +51,12 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     /*定义全局变量*/
+    static final int RESULT_DELETE = 2;
     private ArrayList<TimePage> TimeList;
     private ListViewAdapter theListAdapter;
     private ListView theListView;
     private static final int REQUEST_CODE_NEW_PAGE=10;
+    private static final int REQUEST_CODE_EDIT_PAGE=11;
     private static final int REQUEST_EXTERNAL_STORAGE = 10;
     private static String[] PERMISSIONS_STORAGE = {
             "android.permission.READ_EXTERNAL_STORAGE",
@@ -171,6 +174,7 @@ public class MainActivity extends AppCompatActivity
         theListView = findViewById(R.id.time_list);
         theListView.setAdapter(theListAdapter);
 
+        theListView.setOnItemClickListener(new EditPageListener());
     }
 
     //返回键优先关闭左侧滑动菜单
@@ -182,29 +186,6 @@ public class MainActivity extends AppCompatActivity
         } else {
             super.onBackPressed();
         }
-    }
-
-    //去除右上角设置菜单
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     //创建activity的返回值
@@ -234,6 +215,50 @@ public class MainActivity extends AppCompatActivity
                 }
                 //暂无处理
                 if(resultCode==RESULT_CANCELED){
+
+                }
+                break;
+            case REQUEST_CODE_EDIT_PAGE:
+                //编辑页面
+                if (resultCode == RESULT_OK) {
+                    if (data == null) {
+                        Log.d("1", "null pointer intent");
+                        return;
+                    }
+                    Bundle bundle=data.getExtras();
+                    TimePage page;
+                    int position;
+                    if(bundle!=null) {
+                        page = (TimePage) bundle.getSerializable("TimePage");
+                        //根据源码可知getInt的默认值为0，为了保证获取该值不出错，须避免使用默认值
+                        position = bundle.getInt("Position");
+                        if (page != null&&position!=0) {
+                            if (!page.isValid()) {
+                                return;
+                            }
+                            //复原该值
+                            --position;
+                            theListAdapter.removeItem(position);
+                            theListAdapter.addItem(page);
+                            theListAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+                //暂无处理
+                if(resultCode==RESULT_CANCELED){
+
+                }
+                if(resultCode==RESULT_DELETE){
+                    if(data==null){
+                        return;
+                    }
+                    Bundle bundle = data.getExtras();
+                    int position = bundle.getInt("Position");
+                    if (position != 0) {
+                        --position;
+                        theListAdapter.removeItem(position);
+                        theListAdapter.notifyDataSetChanged();
+                    }
 
                 }
                 break;
@@ -343,7 +368,6 @@ public class MainActivity extends AppCompatActivity
         }
         return null;
     }
-
     public static String queryAbsolutePath(final Context context, final Uri uri) {
         final String[] projection = {MediaStore.MediaColumns.DATA};
         Cursor cursor = null;
@@ -377,6 +401,21 @@ public class MainActivity extends AppCompatActivity
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    //修改计时器项
+    class EditPageListener implements AdapterView.OnItemClickListener{
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            TimePage page = TimeList.get(position);
+            Intent intent = new Intent(MainActivity.this, EditPageActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("TimePage", page);
+            //根据源码可知getInt的默认值为0，为了保证获取该值不出错，须避免使用默认值
+            bundle.putInt("Position", ++position);
+            intent.putExtras(bundle);
+            startActivityForResult(intent, REQUEST_CODE_EDIT_PAGE);
         }
     }
 }

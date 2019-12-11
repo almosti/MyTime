@@ -30,6 +30,9 @@
     <string name="cancel">取消</string>
     <string name="edit_dialog_edit_hint">请输入周期</string>
     <string name="title_activity_scrolling">ScrollingActivity</string>
+    <string name="delete">删除</string>
+    <string name="share">分享</string>
+    <string name="edit">编辑</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 
@@ -119,4 +122,5 @@
         "For example, position the FAB to one side of stream of a cards so the FAB won’t interfere "
         "when a user tries to pick up one of cards.\n\n"
     </string>
+    <string name="title_activity_edit_page">EditPageActivity</string>
 </resources>
