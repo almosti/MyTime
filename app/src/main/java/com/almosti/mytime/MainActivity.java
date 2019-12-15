@@ -503,7 +503,7 @@ public class MainActivity extends AppCompatActivity
         time %= 60;
 
         String mainTitle="<big>"+currentPage.getTitle()+"</big>";
-        String mainTime=currentPage.getYear()+"年"+currentPage.getMonth()+"月"+currentPage.getDay()+"日";
+        String mainTime=currentPage.getYear()+"年"+(currentPage.getMonth()+1)+"月"+currentPage.getDay()+"日";
         String mainTimer = remainingDay + "天" + remainingHour + "小时" + remainingMinute + "分钟" + time + "秒";
         mainTimerText.setText(Html.fromHtml(mainTitle+"<br>"+ mainTime+"<br>"+mainTimer));
 

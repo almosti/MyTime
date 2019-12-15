@@ -44,7 +44,11 @@ public class NewPageActivity extends AppCompatActivity {
     private Calendar targetCalendar;
     private int cycle;
     private String imagePath;
+    private Calendar futureCalendar;
+    private Calendar pastCalendar;
     private static final int QUEST_IMAGE=1;
+    private static final int CAL_FUTURE=2;
+    private static final int CAL_PAST=3;
     //默认图片集
     private int defaultPictures[]={
       R.drawable.default_picture1,
@@ -97,7 +101,6 @@ public class NewPageActivity extends AppCompatActivity {
                 if (imagePath != null) {
                     page.setImagePath(imagePath);
                     //page.setPictureID(imageURI);
-
                 }
                 //否则使用默认图片
                 else {
@@ -215,8 +218,8 @@ public class NewPageActivity extends AppCompatActivity {
         EditText dialog_edit_future_time=view.findViewById(R.id.dialog_edit_future_time);
         final TextView dialog_edit_future_time_text=view.findViewById(R.id.dialog_edit_future_time_text);
         TextView dialog_edit_future_time_select=view.findViewById(R.id.dialog_edit_future_time_select);
-        final Calendar futureCalendar=Calendar.getInstance();
-        final Calendar pastCalendar=Calendar.getInstance();
+        futureCalendar=Calendar.getInstance();
+        pastCalendar=Calendar.getInstance();
 
         //初始化对话框中各项文本
         final Calendar calendar=Calendar.getInstance();
@@ -276,9 +279,8 @@ public class NewPageActivity extends AppCompatActivity {
             }
         });
         //添加选取监听，还需设置详细时间，调用timePicker
-        dialog_edit_future_time_select.setOnClickListener(new SetTimeByTimePicker(futureCalendar.get(Calendar.YEAR), futureCalendar.get(Calendar.MONTH), futureCalendar.get(Calendar.DATE),dialog));
-        dialog_edit_past_time_select.setOnClickListener(new SetTimeByTimePicker(pastCalendar.get(Calendar.YEAR), pastCalendar.get(Calendar.MONTH), pastCalendar.get(Calendar.DATE),dialog));
-
+        dialog_edit_future_time_select.setOnClickListener(new SetTimeByTimePicker(CAL_FUTURE,dialog));
+        dialog_edit_past_time_select.setOnClickListener(new SetTimeByTimePicker(CAL_PAST,dialog));
         dialog.show();
 
     }
@@ -314,14 +316,10 @@ public class NewPageActivity extends AppCompatActivity {
     }
 
     class SetTimeByTimePicker implements View.OnClickListener{
-        private int year;
-        private int month;
-        private int date;
         AlertDialog dialog;
-        SetTimeByTimePicker(int year,int month,int date,AlertDialog dialog){
-            this.year=year;
-            this.month=month;
-            this.date=date;
+        int calendarCode;
+        SetTimeByTimePicker(int calendarCode,AlertDialog dialog){
+            this.calendarCode=calendarCode;
             this.dialog=dialog;
         }
         @Override
@@ -331,6 +329,18 @@ public class NewPageActivity extends AppCompatActivity {
                     new TimePickerDialog.OnTimeSetListener() {
                         @Override
                         public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                            int year,month,date;
+                            if(calendarCode==CAL_FUTURE){
+                                year = futureCalendar.get(Calendar.YEAR);
+                                month = futureCalendar.get(Calendar.MONTH);
+                                date = futureCalendar.get(Calendar.DATE);
+                            } else if (calendarCode == CAL_PAST) {
+                                year = pastCalendar.get(Calendar.YEAR);
+                                month = pastCalendar.get(Calendar.MONTH);
+                                date = pastCalendar.get(Calendar.DATE);
+                            }else {
+                                return;
+                            }
                             editTimeText.setText(String.format(getString(R.string.set_edit_time), year, month + 1, date, hourOfDay, minute));
                             targetCalendar.set(year,month,date,hourOfDay,minute);
                             dialog.dismiss();
