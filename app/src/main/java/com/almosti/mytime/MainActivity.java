@@ -332,11 +332,7 @@ public class MainActivity extends AppCompatActivity
     //添加新计时器项
     class AddNewPageListener implements View.OnClickListener{
         public void onClick(View view) {
-            TimePage page=new TimePage();
             Intent intent =new Intent(MainActivity.this,NewPageActivity.class);
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("TimePage",page);
-            intent.putExtras(bundle);
             startActivityForResult(intent,REQUEST_CODE_NEW_PAGE);
         }
     }
@@ -490,6 +486,13 @@ public class MainActivity extends AppCompatActivity
 
     //根据剩余时间刷新显示
     private void RefreshTimer(){
+        //当倒计时列表为空时清除内容
+        if(TimeList.isEmpty()){
+            mainTimerText.setText(getString(R.string.default_main_text));
+            mainTimerText.setBackgroundColor(getColor(R.color.colorPrimary));
+            return;
+        }
+
         //转化为秒数
         long time = currentPage.getTimeDistance() / 1000;
         //剩余天数
@@ -502,6 +505,17 @@ public class MainActivity extends AppCompatActivity
         int remainingMinute = (int) time / 60;
         time %= 60;
 
+        //设置重复，当到达该日期后重置时间为下一个周期始
+        if(currentPage.getCycle()>0&&!currentPage.getTimeDistanceSign()){
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(currentPage.getYear(), currentPage.getMonth(), currentPage.getDay(), currentPage.getHour(), currentPage.getMinute());
+            //循环以应对用户更改系统时间的情况
+            while(!currentPage.getTimeDistanceSign()){
+                calendar.add(Calendar.DATE, currentPage.getCycle());
+            }
+        }
+
+        //设置主倒计时文字
         String mainTitle="<big>"+currentPage.getTitle()+"</big>";
         String mainTime=currentPage.getYear()+"年"+(currentPage.getMonth()+1)+"月"+currentPage.getDay()+"日";
         String mainTimer = remainingDay + "天" + remainingHour + "小时" + remainingMinute + "分钟" + time + "秒";

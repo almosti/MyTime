@@ -29,7 +29,7 @@ public class TimePage implements Serializable {
         return Math.abs(calendar.getTimeInMillis()-getTimeDate().getTime());
     }
 
-    //检查倒计时是否已过
+    //检查倒计时是否已过,true表示时间未到，false表示时间已过
     boolean getTimeDistanceSign(){
         Calendar calendar=Calendar.getInstance();
         return calendar.getTime().getTime()<=getTimeDate().getTime();

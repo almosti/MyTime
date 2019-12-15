@@ -42,7 +42,7 @@ public class NewPageActivity extends AppCompatActivity {
     private TimePage page;
     private TextView editTimeText;
     private Calendar targetCalendar;
-    private int cycle;
+    private int cycle=-1;
     private String imagePath;
     private Calendar futureCalendar;
     private Calendar pastCalendar;
@@ -65,7 +65,7 @@ public class NewPageActivity extends AppCompatActivity {
         }
         //提前确认已经获取权限
         verifyStoragePermissions(NewPageActivity.this);
-        page=new TimePage();
+
         FloatingActionButton fabCancel=findViewById(R.id.edit_cancel);
         FloatingActionButton fabSave = findViewById(R.id.edit_save);
         final EditText editTitle = findViewById(R.id.edit_title);
@@ -75,6 +75,32 @@ public class NewPageActivity extends AppCompatActivity {
         View editImage=findViewById(R.id.edit_image_section);
         editTimeText=findViewById(R.id.edit_time);
         targetCalendar=Calendar.getInstance();
+
+        //处理从修改页进入的情况
+        Bundle bundle = getIntent().getExtras();
+        if(bundle!=null){
+            page = (TimePage) bundle.getSerializable("TimePage");
+            if (page != null) {
+                editTitle.setText(page.getTitle());
+                editRemark.setText(page.getRemark());
+                View view = findViewById(R.id.edit_above_background);
+                if(page.getImagePath()!=null){
+                    File f = new File(page.getImagePath());
+                    Drawable drawable = Drawable.createFromPath(f.getAbsolutePath());
+                    view.setBackground(drawable);
+                }else if(page.getDrawableID()!=-1){
+                    Drawable drawable = getDrawable(page.getDrawableID());
+                    view.setBackground(drawable);
+                }
+                editTimeText.setText(String.format(getString(R.string.set_edit_time), page.getYear(), page.getMonth() + 1, page.getDay(), page.getHour(), page.getMinute()));
+                if (page.getCycle() != -1) {
+                    TextView cycleText = findViewById(R.id.edit_repeat);
+                    cycleText.setText(String.valueOf(page.getCycle()));
+                }
+            }
+        }else{
+            page=new TimePage();
+        }
 
         //取消按钮
         fabCancel.setOnClickListener(new View.OnClickListener() {
@@ -122,7 +148,7 @@ public class NewPageActivity extends AppCompatActivity {
         });
         //点击编辑时间部分
         editTime.setOnClickListener(new SetTimeByCalendar());
-        //长按显示时间计算器
+        //长按显示时间计算器,返回true消除点击时长在长按与单击之间的情况
         editTime.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -188,7 +214,7 @@ public class NewPageActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String s = editText.getText() == null ? "" : editText.getText().toString();
-                if (s.isEmpty()||s.length()>3) {
+                if (s.isEmpty() || s.length() > 3 || Integer.valueOf(s) <= 0) {
                     Toast.makeText(getBaseContext(), "请输入合理周期", Toast.LENGTH_LONG).show();
                     return;
                 }
@@ -203,6 +229,36 @@ public class NewPageActivity extends AppCompatActivity {
             }
         });
         editDialog.show();
+    }
+
+    //使用官方datepicker和timepicker的对话框进行日期时间的设置
+    class SetTimeByCalendar implements View.OnClickListener{
+        @Override
+        public void onClick(View v){
+            final Calendar calendar=Calendar.getInstance();
+            DatePickerDialog datePickerDialog=new DatePickerDialog(NewPageActivity.this,
+                    new DatePickerDialog.OnDateSetListener() {
+                        @Override
+                        public void onDateSet(DatePicker view, final int year, final int month, final int dayOfMonth) {
+                            TimePickerDialog timePickerDialog=new TimePickerDialog(NewPageActivity.this,
+                                    new TimePickerDialog.OnTimeSetListener() {
+                                        @Override
+                                        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                            editTimeText.setText(String.format(getString(R.string.set_edit_time), year, month + 1, dayOfMonth, hourOfDay, minute));
+                                            targetCalendar.set(year,month,dayOfMonth,hourOfDay,minute);
+                                        }
+                                    },
+                                    calendar.get(Calendar.HOUR_OF_DAY),
+                                    calendar.get(Calendar.MINUTE),
+                                    true);
+                            timePickerDialog.show();
+                        }
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DATE));
+            datePickerDialog.show();
+        }
     }
 
     //自定义对话框实现日期计算器
@@ -243,7 +299,6 @@ public class NewPageActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
                 if(s!=null&&s.length()>0){
                     int dateDistance=Integer.valueOf(s.toString());
-                    int yearDistance=0;
                     if(TimeDistanceValid(dateDistance)){
                         Calendar tmpCalendar=Calendar.getInstance();
                         tmpCalendar.add(Calendar.DAY_OF_YEAR, dateDistance);
@@ -284,37 +339,6 @@ public class NewPageActivity extends AppCompatActivity {
         dialog.show();
 
     }
-
-    //使用官方datepicker和timepicker的对话框进行日期时间的设置
-    class SetTimeByCalendar implements View.OnClickListener{
-        @Override
-        public void onClick(View v){
-            final Calendar calendar=Calendar.getInstance();
-            DatePickerDialog datePickerDialog=new DatePickerDialog(NewPageActivity.this,
-                    new DatePickerDialog.OnDateSetListener() {
-                        @Override
-                        public void onDateSet(DatePicker view, final int year, final int month, final int dayOfMonth) {
-                            TimePickerDialog timePickerDialog=new TimePickerDialog(NewPageActivity.this,
-                                    new TimePickerDialog.OnTimeSetListener() {
-                                        @Override
-                                        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                                            editTimeText.setText(String.format(getString(R.string.set_edit_time), year, month + 1, dayOfMonth, hourOfDay, minute));
-                                            targetCalendar.set(year,month,dayOfMonth,hourOfDay,minute);
-                                        }
-                                    },
-                                    calendar.get(Calendar.HOUR_OF_DAY),
-                                    calendar.get(Calendar.MINUTE),
-                                    true);
-                            timePickerDialog.show();
-                        }
-                    },
-                    calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DATE));
-            datePickerDialog.show();
-        }
-    }
-
     class SetTimeByTimePicker implements View.OnClickListener{
         AlertDialog dialog;
         int calendarCode;
@@ -353,6 +377,7 @@ public class NewPageActivity extends AppCompatActivity {
         }
     }
 
+    //检测时间间隔合法性
     private boolean TimeDistanceValid(int timeDistance){
         return timeDistance>=0&&timeDistance<Integer.MAX_VALUE;
     }
