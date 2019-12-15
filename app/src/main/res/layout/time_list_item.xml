@@ -19,6 +19,7 @@
             android:id="@+id/timeDistance"
             android:text="@string/default_time_distance"
             android:textSize="@dimen/time_list_character_size"
+            android:textColor="@color/white"
             android:gravity="center" />
 
         <TextView

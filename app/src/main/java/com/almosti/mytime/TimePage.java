@@ -20,6 +20,7 @@ public class TimePage implements Serializable {
         minute=-1;
         cycle=-1;
         second=0;//由于timepicker无法设定秒，故直接默认为整分钟
+        drawableID=-1;
     }
 
     //用于获取剩余时间，本质是计算时间差，这里先返回差额秒数，由调用者自行转化单位
@@ -34,15 +35,17 @@ public class TimePage implements Serializable {
         return calendar.getTime().getTime()<=getTimeDate().getTime();
     }
 
-    Calendar getTimeCalendar(){
+    private Calendar getTimeCalendar(){
         Calendar calendar = Calendar.getInstance();
         calendar.set(year, month, day, hour, minute, second);
         return calendar;
     }
-    Date getTimeDate(){
+
+    private Date getTimeDate(){
         Calendar calendar=getTimeCalendar();
         return calendar.getTime();
     }
+
     //检查倒计时页合法性
     boolean isValid(){
         return (!title.isEmpty()&&
@@ -53,75 +56,79 @@ public class TimePage implements Serializable {
                 minute!=-1);
     }
 
-    public String getTitle() { return title; }
+    String getTitle() { return title; }
 
-    public void setTitle(String title) {
+    void setTitle(String title) {
         this.title = title;
     }
 
-    public String getRemark() {
+    String getRemark() {
         return remark;
     }
 
-    public void setRemark(String remark) {
+    void setRemark(String remark) {
         this.remark = remark;
     }
 
-    public int getYear() {
+    int getYear() {
         return year;
     }
 
-    public void setYear(int year) {
+    void setYear(int year) {
         this.year = year;
     }
 
-    public int getMonth() {
+    int getMonth() {
         return month;
     }
 
-    public void setMonth(int month) {
+    void setMonth(int month) {
         this.month = month;
     }
 
-    public int getDay() {
+    int getDay() {
         return day;
     }
 
-    public void setDay(int day) {
+    void setDay(int day) {
         this.day = day;
     }
 
-    public int getHour() {
+    int getHour() {
         return hour;
     }
 
-    public void setHour(int hour) {
+    void setHour(int hour) {
         this.hour = hour;
     }
 
-    public int getMinute() {
+    int getMinute() {
         return minute;
     }
 
-    public void setMinute(int minute) {
+    void setMinute(int minute) {
         this.minute = minute;
     }
 
-    public int getCycle() {
+    int getCycle() {
         return cycle;
     }
 
-    public void setCycle(int cycle) {
+    void setCycle(int cycle) {
         this.cycle = cycle;
     }
 
-    public int getSecond() { return second; }
+    int getSecond() { return second; }
 
-    public void setSecond(int second) { this.second = second; }
+    void setSecond(int second) { this.second = second; }
 
-    public String getImagePath() { return imagePath; }
+    void setImagePath(String imagePath) { this.imagePath = imagePath;}
 
-    public void setImagePath(String imagePath) { this.imagePath = imagePath;}
+    String getImagePath() { return imagePath; }
+
+    void setDrawableID(int drawableID){ this.drawableID = drawableID;}
+
+    int getDrawableID(){return drawableID;}
 
     private String title;
     private String remark;
@@ -133,4 +140,5 @@ public class TimePage implements Serializable {
     private int second;
     private int cycle;
     private String imagePath;
+    private int drawableID;
 }

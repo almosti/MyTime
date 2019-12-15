@@ -2,6 +2,7 @@ package com.almosti.mytime;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import static com.almosti.mytime.MainActivity.REQUEST_CODE_EDIT_PAGE_DATA;
 import static com.almosti.mytime.MainActivity.RESULT_DELETE;
 
 public class EditPageActivity extends AppCompatActivity {
@@ -27,6 +29,11 @@ public class EditPageActivity extends AppCompatActivity {
 
         InitToolBar(toolbar);
         InitData();
+        RefreshUI();
+    }
+
+    //根据page对象更新本页显示的数据
+    private void RefreshUI(){
 
     }
 
@@ -34,8 +41,28 @@ public class EditPageActivity extends AppCompatActivity {
     private void InitData(){
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
-        page = (TimePage) bundle.getSerializable("TimePage");
-        position = bundle.getInt("Position");
+        if(bundle!=null){
+            page = (TimePage) bundle.getSerializable("TimePage");
+            position = bundle.getInt("Position");
+        }
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case REQUEST_CODE_EDIT_PAGE_DATA:
+                if(resultCode==RESULT_OK){
+                    if(data!=null){
+                        Bundle bundle = data.getExtras();
+                        if (bundle != null) {
+                            page = (TimePage) bundle.getSerializable("TimePage");
+                        }
+                    }
+                }
+                break;
+        }
     }
 
     //需要在重写toolbar中完成menu的绑定，否则不会正常显示
@@ -52,16 +79,22 @@ public class EditPageActivity extends AppCompatActivity {
             public boolean onMenuItemClick(MenuItem menuItem) {
                 switch (menuItem.getItemId()){
                     case R.id.edit_toolbar_delete:
-                        Intent intent=getIntent();
+                        Intent intentToDelete=getIntent();
                         Bundle bundle = new Bundle();
                         bundle.putInt("Position", position);
-                        intent.putExtras(bundle);
-                        setResult(RESULT_DELETE, intent);
+                        intentToDelete.putExtras(bundle);
+                        setResult(RESULT_DELETE, intentToDelete);
                         finish();
                         break;
                     case R.id.edit_toolbar_share:
+                        //TODO:添加分享功能
                         break;
                     case R.id.edit_toolbar_edit:
+                        Intent intentToEdit = new Intent();
+                        Bundle bundle1 = new Bundle();
+                        bundle1.putSerializable("TimePage", page);
+                        intentToEdit.putExtras(bundle1);
+                        startActivityForResult(intentToEdit, REQUEST_CODE_EDIT_PAGE_DATA);
                         break;
                 }
                 return true;

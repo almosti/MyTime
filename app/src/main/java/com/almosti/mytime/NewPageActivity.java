@@ -5,13 +5,16 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -42,7 +45,11 @@ public class NewPageActivity extends AppCompatActivity {
     private int cycle;
     private String imagePath;
     private static final int QUEST_IMAGE=1;
-
+    //默认图片集
+    private int defaultPictures[]={
+      R.drawable.default_picture1,
+      R.drawable.default_picture2
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +97,13 @@ public class NewPageActivity extends AppCompatActivity {
                 if (imagePath != null) {
                     page.setImagePath(imagePath);
                     //page.setPictureID(imageURI);
+
+                }
+                //否则使用默认图片
+                else {
+                    //随机一个默认图片
+                    int id = defaultPictures[(int)(Math.random() * defaultPictures.length)];
+                    page.setDrawableID(id);
                 }
                 if(!page.isValid()){
                     Toast.makeText(getBaseContext(), "输入的倒计时无效,请检查标题与所选日期", Toast.LENGTH_LONG).show();

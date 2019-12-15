@@ -12,6 +12,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
@@ -20,6 +22,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
@@ -42,26 +45,45 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.io.File;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     /*定义全局变量*/
     static final int RESULT_DELETE = 2;
+    static final int REQUEST_CODE_NEW_PAGE=10;
+    static final int REQUEST_CODE_EDIT_PAGE=11;
+    static final int REQUEST_CODE_EDIT_PAGE_DATA=12;
+    static final int REQUEST_EXTERNAL_STORAGE = 10;
+    static final int MSG_TIME = 13;
     private ArrayList<TimePage> TimeList;
     private ListViewAdapter theListAdapter;
-    private ListView theListView;
-    private static final int REQUEST_CODE_NEW_PAGE=10;
-    private static final int REQUEST_CODE_EDIT_PAGE=11;
-    private static final int REQUEST_EXTERNAL_STORAGE = 10;
+    private TimePage currentPage;
+    private TextView mainTimerText;
+    private Timer timer;
+    private TimerTask timerTask;
     private static String[] PERMISSIONS_STORAGE = {
             "android.permission.READ_EXTERNAL_STORAGE",
             "android.permission.WRITE_EXTERNAL_STORAGE" };
-
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what){
+                case MSG_TIME:
+                    RefreshTimer();
+                    break;
+            }
+        }
+    };
     /*定义listviewadapter
      * 重写其中的add，remove，getcount，getitem，removeitem，makeitemview，getview方法*/
     public class ListViewAdapter extends BaseAdapter {
@@ -69,7 +91,6 @@ public class MainActivity extends AppCompatActivity
 
         ListViewAdapter(ArrayList<TimePage> TimeList){
             itemViews = new ArrayList<View>(TimeList.size());
-
             //初始化列表
             for (int i=0; i<TimeList.size(); ++i){
                 itemViews.add(makeItemView(TimeList.get(i)));
@@ -84,11 +105,11 @@ public class MainActivity extends AppCompatActivity
             itemViews.add(view);
         }
 
-        public void removeItem(int positon){
-            itemViews.remove(positon);
+        void removeItem(int positon){
+            TimeList.remove(positon);
             TimeListOperator operator=new TimeListOperator();
             operator.save(MainActivity.this.getBaseContext(),TimeList);
-            TimeList.remove(positon);
+            itemViews.remove(positon);
         }
 
         public int getCount() {
@@ -111,9 +132,9 @@ public class MainActivity extends AppCompatActivity
 
             // 使用View的对象itemView与R.layout.item关联
             View itemView = inflater.inflate(R.layout.time_list_item, null);
-
             // 通过findViewById()方法实例R.layout.item内各组件
             TextView dateText = (TextView) itemView.findViewById(R.id.timeDistance);
+            //用相隔毫秒数计算相隔天数
             int timeDistance = (int)page.getTimeDistance() / (1000 * 3600 * 24);
             String timeDistanceString;
             if(page.getTimeDistanceSign()){
@@ -122,12 +143,18 @@ public class MainActivity extends AppCompatActivity
                 timeDistanceString="已经\n"+timeDistance+"天";
             }
             dateText.setText(timeDistanceString);
+            //有自定义图片优先使用自定义图片，没有再用默认图片
             if(page.getImagePath()!=null){
                 File f = new File(page.getImagePath());
                 Drawable drawable = Drawable.createFromPath(f.getAbsolutePath());
                 dateText.setBackground(drawable);
-            }else {
-                //TODO:添加默认图片
+            }else if(page.getDrawableID()!=-1){
+                Drawable drawable = getDrawable(page.getDrawableID());
+                dateText.setBackground(drawable);
+            }
+            //正常无法执行到此处，但为了在图片加载出现错误时仍能显示正常，需要将字体颜色设回黑色
+            else {
+                dateText.setTextColor(getColor(R.color.black));
             }
             TextView contentText = (TextView) itemView.findViewById(R.id.timeContent);
             String contentString=page.getTitle()+"\n"+page.getYear()+"年"+(page.getMonth()+1)+"月"+page.getDay()+"日";
@@ -147,10 +174,17 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         verifyStoragePermissions(MainActivity.this);
+        InitComponent();
 
+    }
+
+    //初始化各组件，单独编写使逻辑更清晰
+    private void InitComponent(){
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        if(getSupportActionBar()!=null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new AddNewPageListener());
 
@@ -171,10 +205,12 @@ public class MainActivity extends AppCompatActivity
             TimeList=new ArrayList<>();
         }
         theListAdapter=new ListViewAdapter(TimeList);
-        theListView = findViewById(R.id.time_list);
+        ListView theListView = findViewById(R.id.time_list);
         theListView.setAdapter(theListAdapter);
 
         theListView.setOnItemClickListener(new EditPageListener());
+        //初始默认将焦点设置为第一项
+        setMainTimer(0);
     }
 
     //返回键优先关闭左侧滑动菜单
@@ -210,12 +246,13 @@ public class MainActivity extends AppCompatActivity
                             }
                             theListAdapter.addItem(page);
                             theListAdapter.notifyDataSetChanged();
+                            setMainTimer(TimeList.size() - 1);
                         }
                     }
                 }
                 //暂无处理
                 if(resultCode==RESULT_CANCELED){
-
+                    Log.d("2", "添加取消");
                 }
                 break;
             case REQUEST_CODE_EDIT_PAGE:
@@ -241,25 +278,28 @@ public class MainActivity extends AppCompatActivity
                             theListAdapter.removeItem(position);
                             theListAdapter.addItem(page);
                             theListAdapter.notifyDataSetChanged();
+                            setMainTimer(TimeList.size() - 1);
                         }
                     }
                 }
                 //暂无处理
                 if(resultCode==RESULT_CANCELED){
-
+                    Log.d("2", "修改取消");
                 }
                 if(resultCode==RESULT_DELETE){
                     if(data==null){
                         return;
                     }
                     Bundle bundle = data.getExtras();
-                    int position = bundle.getInt("Position");
-                    if (position != 0) {
-                        --position;
-                        theListAdapter.removeItem(position);
-                        theListAdapter.notifyDataSetChanged();
+                    if(bundle!=null) {
+                        int position = bundle.getInt("Position");
+                        if (position != 0) {
+                            --position;
+                            theListAdapter.removeItem(position);
+                            theListAdapter.notifyDataSetChanged();
+                            setMainTimer(0);
+                        }
                     }
-
                 }
                 break;
         }
@@ -382,9 +422,7 @@ public class MainActivity extends AppCompatActivity
                 return uri.getPath();
             }
             ex.printStackTrace();
-            if (cursor != null) {
                 cursor.close();
-            }
         }
         return null;
     }
@@ -417,5 +455,57 @@ public class MainActivity extends AppCompatActivity
             intent.putExtras(bundle);
             startActivityForResult(intent, REQUEST_CODE_EDIT_PAGE);
         }
+    }
+
+    //设置主倒计时焦点
+    private void setMainTimer(int position){
+        if (TimeList.isEmpty()) {
+            return;
+        }
+        currentPage = TimeList.get(position);
+        mainTimerText = findViewById(R.id.main_timer_text);
+        if(currentPage.getImagePath()!=null){
+            File f = new File(currentPage.getImagePath());
+            Drawable drawable = Drawable.createFromPath(f.getAbsolutePath());
+            mainTimerText.setBackground(drawable);
+        }else if(currentPage.getDrawableID()!=-1){
+            Drawable drawable = getDrawable(currentPage.getDrawableID());
+            mainTimerText.setBackground(drawable);
+        }
+        if(timer==null&&timerTask==null){
+            timer = new Timer();
+            timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    Message message = new Message();
+                    message.what = MSG_TIME;
+                    handler.sendMessage(message);
+                }
+            };
+            if (timer != null) {
+                timer.scheduleAtFixedRate(timerTask, 1000, 1000);
+            }
+        }
+    }
+
+    //根据剩余时间刷新显示
+    private void RefreshTimer(){
+        //转化为秒数
+        long time = currentPage.getTimeDistance() / 1000;
+        //剩余天数
+        int remainingDay = (int) time / (3600 * 24);
+        time %= (3600 * 24);
+        //剩余小时数
+        int remainingHour = (int) time / 3600;
+        time %= 3600;
+        //剩余分钟数
+        int remainingMinute = (int) time / 60;
+        time %= 60;
+
+        String mainTitle="<big>"+currentPage.getTitle()+"</big>";
+        String mainTime=currentPage.getYear()+"年"+currentPage.getMonth()+"月"+currentPage.getDay()+"日";
+        String mainTimer = remainingDay + "天" + remainingHour + "小时" + remainingMinute + "分钟" + time + "秒";
+        mainTimerText.setText(Html.fromHtml(mainTitle+"<br>"+ mainTime+"<br>"+mainTimer));
+
     }
 }
