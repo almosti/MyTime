@@ -2,8 +2,8 @@
     <string name="app_name">MyTime</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_title">MyTime</string>
+    <string name="nav_header_subtitle">cuiwy2016052567</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
     <string name="default_time_distance">还剩\nn天</string>
@@ -38,4 +38,7 @@
     <string name="edit_floating_window">悬浮窗口</string>
     <string name="title_activity_edit_page">EditPageActivity</string>
     <string name="default_main_text">点击右下角添加新倒计时</string>
+    <string name="settings">设置</string>
+    <string name="send">发送</string>
+    <string name="main_page">主页</string>
 </resources>

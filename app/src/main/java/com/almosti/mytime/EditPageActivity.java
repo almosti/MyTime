@@ -48,7 +48,7 @@ public class EditPageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_page);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         timerText = findViewById(R.id.edit_timer_text);
 
@@ -75,7 +75,7 @@ public class EditPageActivity extends AppCompatActivity {
             String mainTitle="<big>"+page.getTitle()+"</big>";
             String mainTime=page.getYear()+"年"+(page.getMonth()+1)+"月"+page.getDay()+"日";
             String mainTimer = remainingDay + "天" + remainingHour + "小时" + remainingMinute + "分钟" + time + "秒";
-            timerText.setText(Html.fromHtml(mainTitle+"<br>"+ mainTime+"<br>"+mainTimer));
+            timerText.setText(Html.fromHtml(mainTitle+"<br>"+ mainTime+"<br>"+mainTimer,Html.FROM_HTML_MODE_COMPACT));
         }
     }
 
@@ -157,6 +157,7 @@ public class EditPageActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
                 switch (menuItem.getItemId()){
+                    //删除该项倒计时，需要返回位置信息
                     case R.id.edit_toolbar_delete:
                         Intent intentToDelete=getIntent();
                         Bundle bundle = new Bundle();
@@ -165,6 +166,7 @@ public class EditPageActivity extends AppCompatActivity {
                         setResult(RESULT_DELETE, intentToDelete);
                         finish();
                         break;
+                    //将该倒计时用文本方式分享出去
                     case R.id.edit_toolbar_share:
                         Intent intent = new Intent();
                         intent.setAction(Intent.ACTION_SEND);
@@ -173,6 +175,7 @@ public class EditPageActivity extends AppCompatActivity {
                         //调用Intent.createChooser()这个方法，此时即使用户之前为这个intent设置了默认，选择界面还是会显示
                         startActivity(Intent.createChooser(intent,"选择分享应用"));
                         break;
+                    //编辑该倒计时，需要传入page信息，也要在onActivityResult处理返回信息
                     case R.id.edit_toolbar_edit:
                         Intent intentToEdit = new Intent(EditPageActivity.this, NewPageActivity.class);
                         Bundle bundle1 = new Bundle();

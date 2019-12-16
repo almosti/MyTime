@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -90,7 +91,7 @@ public class MainActivity extends AppCompatActivity
         ArrayList<View> itemViews;
 
         ListViewAdapter(ArrayList<TimePage> TimeList){
-            itemViews = new ArrayList<View>(TimeList.size());
+            itemViews = new ArrayList<>(TimeList.size());
             //初始化列表
             for (int i=0; i<TimeList.size(); ++i){
                 itemViews.add(makeItemView(TimeList.get(i)));
@@ -126,14 +127,13 @@ public class MainActivity extends AppCompatActivity
 
         //重写listview显示方式
         private View makeItemView(TimePage page) {
-
             LayoutInflater inflater = (LayoutInflater)MainActivity.this
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
             // 使用View的对象itemView与R.layout.item关联
             View itemView = inflater.inflate(R.layout.time_list_item, null);
             // 通过findViewById()方法实例R.layout.item内各组件
-            TextView dateText = (TextView) itemView.findViewById(R.id.timeDistance);
+            TextView dateText = itemView.findViewById(R.id.timeDistance);
             //用相隔毫秒数计算相隔天数
             int timeDistance = (int)page.getTimeDistance() / (1000 * 3600 * 24);
             String timeDistanceString;
@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity
             else {
                 dateText.setTextColor(getColor(R.color.black));
             }
-            TextView contentText = (TextView) itemView.findViewById(R.id.timeContent);
+            TextView contentText = itemView.findViewById(R.id.timeContent);
             String contentString=page.getTitle()+"\n"+page.getYear()+"年"+(page.getMonth()+1)+"月"+page.getDay()+"日";
             contentText.setText(contentString);
             return itemView;
@@ -180,21 +180,21 @@ public class MainActivity extends AppCompatActivity
 
     //初始化各组件，单独编写使逻辑更清晰
     private void InitComponent(){
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if(getSupportActionBar()!=null) {
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new AddNewPageListener());
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         //初始化计时器数据列表
@@ -216,7 +216,7 @@ public class MainActivity extends AppCompatActivity
     //返回键优先关闭左侧滑动菜单
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -306,25 +306,31 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
+        if (id == R.id.nav_main_page) {
+            Log.d("2", "");
         } else if (id == R.id.nav_manage) {
-
+            Log.d("2", "");
         } else if (id == R.id.nav_share) {
-
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_SEND);
+            intent.putExtra(Intent.EXTRA_TEXT,"MyTime App");
+            intent.setType("text/plain");
+            //调用Intent.createChooser()这个方法，此时即使用户之前为这个intent设置了默认，选择界面还是会显示
+            startActivity(Intent.createChooser(intent,"选择分享应用"));
         } else if (id == R.id.nav_send) {
-
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_SEND);
+            intent.putExtra(Intent.EXTRA_TEXT,currentPage.getTitle()+"："+currentPage.getYear()+"年"+(currentPage.getMonth()+1)+"月"+currentPage.getDay()+"日");
+            intent.setType("text/plain");
+            //调用Intent.createChooser()这个方法，此时即使用户之前为这个intent设置了默认，选择界面还是会显示
+            startActivity(Intent.createChooser(intent,"选择分享应用"));
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -354,28 +360,24 @@ public class MainActivity extends AppCompatActivity
                 final String[] divide = docId.split(":");
                 final String type = divide[0];
                 if ("primary".equals(type)) {
-                    String path = Environment.getExternalStorageDirectory().getAbsolutePath().concat("/").concat(divide[1]);
-                    return path;
+                    return Environment.getExternalStorageDirectory().getAbsolutePath().concat("/").concat(divide[1]);
                 } else {
-                    String path = "/storage/".concat(type).concat("/").concat(divide[1]);
-                    return path;
+                    return "/storage/".concat(type).concat("/").concat(divide[1]);
                 }
             } else if ("com.android.providers.downloads.documents".equals(authority)) {
                 // 下載目錄
                 final String docId = DocumentsContract.getDocumentId(uri);
                 if (docId.startsWith("raw:")) {
-                    final String path = docId.replaceFirst("raw:", "");
-                    return path;
+                    return docId.replaceFirst("raw:", "");
                 }
                 final Uri downloadUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.parseLong(docId));
-                String path = queryAbsolutePath(context, downloadUri);
-                return path;
+                return queryAbsolutePath(context, downloadUri);
             } else if ("com.android.providers.media.documents".equals(authority)) {
                 // 圖片、影音檔案
                 final String docId = DocumentsContract.getDocumentId(uri);
                 final String[] divide = docId.split(":");
                 final String type = divide[0];
-                Uri mediaUri = null;
+                Uri mediaUri;
                 if ("image".equals(type)) {
                     mediaUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
                 } else if ("video".equals(type)) {
@@ -386,8 +388,7 @@ public class MainActivity extends AppCompatActivity
                     return null;
                 }
                 mediaUri = ContentUris.withAppendedId(mediaUri, Long.parseLong(divide[1]));
-                String path = queryAbsolutePath(context, mediaUri);
-                return path;
+                return queryAbsolutePath(context, mediaUri);
             }
         } else {
             // 如果是一般的URI
@@ -519,7 +520,7 @@ public class MainActivity extends AppCompatActivity
         String mainTitle="<big>"+currentPage.getTitle()+"</big>";
         String mainTime=currentPage.getYear()+"年"+(currentPage.getMonth()+1)+"月"+currentPage.getDay()+"日";
         String mainTimer = remainingDay + "天" + remainingHour + "小时" + remainingMinute + "分钟" + time + "秒";
-        mainTimerText.setText(Html.fromHtml(mainTitle+"<br>"+ mainTime+"<br>"+mainTimer));
+        mainTimerText.setText(Html.fromHtml(mainTitle+"<br>"+ mainTime+"<br>"+mainTimer,Html.FROM_HTML_MODE_COMPACT));
 
     }
 }
