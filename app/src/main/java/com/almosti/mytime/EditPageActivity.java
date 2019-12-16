@@ -14,6 +14,7 @@ import android.text.Html;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -87,6 +88,11 @@ public class EditPageActivity extends AppCompatActivity {
         if(bundle!=null){
             page = (TimePage) bundle.getSerializable("TimePage");
             position = bundle.getInt("Position");
+            int themeColor = bundle.getInt("Color");
+            if (themeColor != 0) {
+                Window window = getWindow();
+                window.setStatusBarColor(themeColor);
+            }
         }
         //设置倒计时
         if(timer==null&&timerTask==null){
@@ -114,6 +120,7 @@ public class EditPageActivity extends AppCompatActivity {
                 timerText.setBackground(drawable);
             }
         }
+
         //TODO：设置通知栏、快捷图标、悬浮窗口
     }
 

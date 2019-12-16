@@ -1,12 +1,13 @@
 package com.almosti.mytime;
 
 import android.app.Activity;
+import android.app.TaskStackBuilder;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -17,17 +18,9 @@ import android.os.Message;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.text.Html;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,19 +30,22 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
+import java.io.BufferedReader;
 import java.io.File;
-import java.sql.Time;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Timer;
@@ -63,14 +59,17 @@ public class MainActivity extends AppCompatActivity
     static final int REQUEST_CODE_NEW_PAGE=10;
     static final int REQUEST_CODE_EDIT_PAGE=11;
     static final int REQUEST_CODE_EDIT_PAGE_DATA=12;
-    static final int REQUEST_EXTERNAL_STORAGE = 10;
+    static final int REQUEST_EXTERNAL_STORAGE = 15;
+    static final int REQUEST_CODE_SETTINGS=14;
     static final int MSG_TIME = 13;
+    static final String FILENAME = "Settings";
     private ArrayList<TimePage> TimeList;
     private ListViewAdapter theListAdapter;
     private TimePage currentPage;
     private TextView mainTimerText;
     private Timer timer;
     private TimerTask timerTask;
+    private int themeColor;
     private static String[] PERMISSIONS_STORAGE = {
             "android.permission.READ_EXTERNAL_STORAGE",
             "android.permission.WRITE_EXTERNAL_STORAGE" };
@@ -209,7 +208,22 @@ public class MainActivity extends AppCompatActivity
         theListView.setAdapter(theListAdapter);
 
         theListView.setOnItemClickListener(new EditPageListener());
-        //初始默认将焦点设置为第一项
+
+        //设置主题色
+        FileInputStream fis;
+        try{
+            fis = openFileInput(FILENAME);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis));
+            String s = bufferedReader.readLine();
+            themeColor = Integer.valueOf(s);
+        }catch (FileNotFoundException e) {
+            themeColor = getColor(R.color.colorPrimary);
+        }catch (IOException e) {
+            themeColor = getColor(R.color.colorPrimary);
+            e.printStackTrace();
+        }
+        setThemeColor();
+        //初始默认将焦点设置为第一项,放在设置主题色之后，覆盖toolbar颜色
         setMainTimer(0);
     }
 
@@ -302,6 +316,33 @@ public class MainActivity extends AppCompatActivity
                     }
                 }
                 break;
+            case REQUEST_CODE_SETTINGS:
+                if(resultCode==RESULT_OK){
+                    if(data==null){
+                        return;
+                    }
+                    Bundle bundle = data.getExtras();
+                    if(bundle!=null) {
+                        if (bundle.getInt("Color") != 0) {
+                            themeColor = bundle.getInt("Color");
+                            setThemeColor();
+                            FileOutputStream fos = null;
+                            try {
+                                //文件路径  /data/data/com.example.myapplication/files/
+                                fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
+                                fos.write(String.valueOf(themeColor).getBytes());
+                                fos.close();
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+                if (resultCode == RESULT_CANCELED) {
+                    Log.d("2", "设置取消");
+                }
         }
     }
 
@@ -313,7 +354,12 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_main_page) {
             Log.d("2", "");
         } else if (id == R.id.nav_manage) {
-            Log.d("2", "");
+            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("TimePage", currentPage);
+            bundle.putInt("Color",themeColor);
+            intent.putExtras(bundle);
+            startActivityForResult(intent, REQUEST_CODE_SETTINGS);
         } else if (id == R.id.nav_share) {
             Intent intent = new Intent();
             intent.setAction(Intent.ACTION_SEND);
@@ -449,6 +495,7 @@ public class MainActivity extends AppCompatActivity
             bundle.putSerializable("TimePage", page);
             //根据源码可知getInt的默认值为0，为了保证获取该值不出错，须避免使用默认值
             bundle.putInt("Position", ++position);
+            bundle.putInt("Color", themeColor);
             intent.putExtras(bundle);
             startActivityForResult(intent, REQUEST_CODE_EDIT_PAGE);
         }
@@ -522,5 +569,17 @@ public class MainActivity extends AppCompatActivity
         String mainTimer = remainingDay + "天" + remainingHour + "小时" + remainingMinute + "分钟" + time + "秒";
         mainTimerText.setText(Html.fromHtml(mainTitle+"<br>"+ mainTime+"<br>"+mainTimer,Html.FROM_HTML_MODE_COMPACT));
 
+    }
+
+    private void setThemeColor(){
+        TextView textView = findViewById(R.id.main_timer_text);
+        textView.setBackgroundColor(themeColor);
+        FloatingActionButton floatingActionButton = findViewById(R.id.fab);
+        floatingActionButton.setBackgroundTintList(ColorStateList.valueOf(themeColor));
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        View view = navigationView.getHeaderView(0);
+        view.setBackgroundColor(themeColor);
+        Window window = getWindow();
+        window.setStatusBarColor(themeColor);
     }
 }

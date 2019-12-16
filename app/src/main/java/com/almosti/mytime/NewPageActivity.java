@@ -16,6 +16,7 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -25,6 +26,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -32,9 +34,15 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Calendar;
 
+import static com.almosti.mytime.MainActivity.FILENAME;
 import static com.almosti.mytime.MainActivity.verifyStoragePermissions;
 
 public class NewPageActivity extends AppCompatActivity {
@@ -76,21 +84,38 @@ public class NewPageActivity extends AppCompatActivity {
         editTimeText=findViewById(R.id.edit_time);
         targetCalendar=Calendar.getInstance();
 
-        //处理从修改页进入的情况
+        ConstraintLayout constraintLayout = findViewById(R.id.edit_above_background);
+        //设置主题色
+        FileInputStream fis;
+        int themeColor;
+        try{
+            fis = openFileInput(FILENAME);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis));
+            String s = bufferedReader.readLine();
+            themeColor = Integer.valueOf(s);
+        }catch (FileNotFoundException e) {
+            themeColor = getColor(R.color.colorPrimary);
+        }catch (IOException e) {
+            themeColor = getColor(R.color.colorPrimary);
+            e.printStackTrace();
+        }
+        constraintLayout.setBackgroundColor(themeColor);
+        Window window = getWindow();
+        window.setStatusBarColor(themeColor);
         Bundle bundle = getIntent().getExtras();
         if(bundle!=null){
             page = (TimePage) bundle.getSerializable("TimePage");
+            //处理从修改页进入的情况
             if (page != null) {
                 editTitle.setText(page.getTitle());
                 editRemark.setText(page.getRemark());
-                View view = findViewById(R.id.edit_above_background);
                 if(page.getImagePath()!=null){
                     File f = new File(page.getImagePath());
                     Drawable drawable = Drawable.createFromPath(f.getAbsolutePath());
-                    view.setBackground(drawable);
+                    constraintLayout.setBackground(drawable);
                 }else if(page.getDrawableID()!=-1){
                     Drawable drawable = getDrawable(page.getDrawableID());
-                    view.setBackground(drawable);
+                    constraintLayout.setBackground(drawable);
                 }
                 editTimeText.setText(String.format(getString(R.string.set_edit_time), page.getYear(), page.getMonth() + 1, page.getDay(), page.getHour(), page.getMinute()));
                 if (page.getCycle() != -1) {

@@ -41,4 +41,7 @@
     <string name="settings">设置</string>
     <string name="send">发送</string>
     <string name="main_page">主页</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="setting_color_text">主题色</string>
+    <string name="save">保存</string>
 </resources>
