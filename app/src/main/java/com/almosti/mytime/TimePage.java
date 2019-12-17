@@ -21,9 +21,12 @@ public class TimePage implements Serializable {
         cycle=-1;
         second=0;//由于timepicker无法设定秒，故直接默认为整分钟
         drawableID=-1;
+        notification = false;
+        desktop = false;
+        floating = false;
     }
 
-    //用于获取剩余时间，本质是计算时间差，这里先返回差额秒数，由调用者自行转化单位
+    //用于获取剩余时间，本质是计算时间差，这里先返回差额毫秒数，由调用者自行转化单位
     long getTimeDistance(){
         Calendar calendar=Calendar.getInstance();
         return Math.abs(calendar.getTimeInMillis()-getTimeDate().getTime());
@@ -130,6 +133,18 @@ public class TimePage implements Serializable {
 
     int getDrawableID(){return drawableID;}
 
+    public boolean canNotification() { return notification; }
+
+    public void setNotification(boolean canNotification) { this.notification = canNotification; }
+
+    public boolean hasDesktop() { return desktop; }
+
+    public void setDesktop(boolean canDesktop) { this.desktop = canDesktop; }
+
+    public boolean canFloating() { return floating; }
+
+    public void setFloating(boolean canFloating) { this.floating = canFloating; }
+
     private String title;
     private String remark;
     private int year;
@@ -141,4 +156,7 @@ public class TimePage implements Serializable {
     private int cycle;
     private String imagePath;
     private int drawableID;
+    private boolean notification;
+    private boolean desktop;
+    private boolean floating;
 }

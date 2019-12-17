@@ -1,7 +1,12 @@
 package com.almosti.mytime;
 
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -15,6 +20,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -121,7 +128,50 @@ public class EditPageActivity extends AppCompatActivity {
             }
         }
 
-        //TODO：设置通知栏、快捷图标、悬浮窗口
+        //设置通知栏，这里只改变了属性，具体操作在更新时进行
+        Switch reminder_switch = findViewById(R.id.edit_reminder_switch);
+        reminder_switch.setChecked(page.canNotification());
+        reminder_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                page.setNotification(isChecked);
+            }
+        });
+        //设置快捷方式
+        Switch shortcut_switch = findViewById(R.id.edit_shortcut_switch);
+        shortcut_switch.setChecked(page.hasDesktop());
+        shortcut_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                page.setDesktop(isChecked);
+                if (isChecked) {
+                    ShortcutManager shortcutManager = (ShortcutManager) getSystemService(Context.SHORTCUT_SERVICE);//获取shortcutManager
+                    if(shortcutManager != null && shortcutManager.isRequestPinShortcutSupported()){
+                        Intent shortCutIntent = new Intent(EditPageActivity.this,MainActivity.class);//快捷方式启动页面
+                        shortCutIntent.setAction(Intent.ACTION_VIEW);
+                        //快捷方式创建相关信息。图标名字 id
+                        ShortcutInfo shortcutInfo = new ShortcutInfo.Builder(EditPageActivity.this,"shortcutid")
+                                .setIcon(Icon.createWithResource(EditPageActivity.this,R.drawable.icon))
+                                .setShortLabel("MyTime")
+                                .setIntent(shortCutIntent)
+                                .build();
+                        //创建快捷方式时候回调
+                        PendingIntent pendingIntent = PendingIntent.getBroadcast(EditPageActivity.this,0,new
+                                Intent(EditPageActivity.this,MainActivity.class),PendingIntent.FLAG_UPDATE_CURRENT);
+                        shortcutManager.requestPinShortcut(shortcutInfo,pendingIntent.getIntentSender());
+                    }
+                }
+            }
+        });
+        //设置悬浮窗口
+        Switch floating_switch = findViewById(R.id.edit_floating_switch);
+        floating_switch.setChecked(page.canFloating());
+        floating_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                page.setFloating(isChecked);
+            }
+        });
     }
 
     @Override
@@ -202,6 +252,12 @@ public class EditPageActivity extends AppCompatActivity {
             toolbar.setNavigationOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Intent intent = getIntent();
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("Position", position);
+                    bundle.putSerializable("TimePage", page);
+                    intent.putExtras(bundle);
+                    setResult(RESULT_OK, intent);
                     finish();
                 }
             });

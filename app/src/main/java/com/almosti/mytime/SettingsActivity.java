@@ -110,6 +110,8 @@ public class SettingsActivity extends AppCompatActivity
                 mColor = mColorPickGradient.getColor(radio);
                 Toolbar toolbar = findViewById(R.id.setting_toolbar);
                 toolbar.setBackgroundColor(mColor);
+                Window window1 = getWindow();
+                window1.setStatusBarColor(mColor);
             }
 
             @Override

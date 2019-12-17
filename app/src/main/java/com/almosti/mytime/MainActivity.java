@@ -225,6 +225,9 @@ public class MainActivity extends AppCompatActivity
         setThemeColor();
         //初始默认将焦点设置为第一项,放在设置主题色之后，覆盖toolbar颜色
         setMainTimer(0);
+
+        Intent intent = new Intent(this, MyService.class);
+        startService(intent);
     }
 
     //返回键优先关闭左侧滑动菜单
