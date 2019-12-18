@@ -164,14 +164,14 @@ public class EditPageActivity extends AppCompatActivity {
             }
         });
         //设置悬浮窗口
-        Switch floating_switch = findViewById(R.id.edit_floating_switch);
+        /*Switch floating_switch = findViewById(R.id.edit_floating_switch);
         floating_switch.setChecked(page.canFloating());
         floating_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 page.setFloating(isChecked);
             }
-        });
+        });*/
     }
 
     @Override
